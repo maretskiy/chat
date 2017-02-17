@@ -41,6 +41,7 @@ class ChatWebSocketHandler(tornado.websocket.WebSocketHandler):
         ChatWebSocketHandler.connections.add(self)
         self.write_message({'current_user': user, 'color': self.color})
         for message in database.all():
+            # FIXME(maretskiy): this should be sent as bulk request
             self.write_message(message)
 
     def on_close(self):
