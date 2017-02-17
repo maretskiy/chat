@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Simple Chat</title>
+    <style>
+      body {padding:0; margin:0; background:#fff}
+      .content {padding:0; margin:0; font-size:14px; font-family:arial,sans}
+      .header {font-size:18px; background:#345; color:#eee; padding:10px; margin:0}
+      .messages-container {padding:5px; margin: 5px; border:1px #999 solid; border-radius:10px}
+      .messages {width:100%; padding:4px 6px; margin:0}
+      .messages .item {padding:0}
+      .messages .column {float:left; padding:3px 0; overflow:hidden}
+      .messages .key {width:25%; height:14px}
+      .messages .value {width:74%; height:14px}
+      .username {width:100%; padding:6px; margin:0}
+      .sender {width:100%; padding:6px; margin:0}
+      .sender input[type=text] {width:50%; margin:0 5px 0; float:left}
+      .sender button {float:left}
+    </style>
+  </head>
+  <body>
+
+    <div class="content">
+
+      <div class="header">
+        Simple chat...
+      </div>
+
+      <div class="messages-container">
+        <div class="messages">
+          <div id="message-cursor" style="clear:both"></div>
+        </div>
+        <div style="clear:both"></div>
+      </div>
+
+      <div id="username" class="username"></div>
+
+      <div class="sender">
+        <form id="send-message" class="send-message-form">
+          <div>
+            <input id="message" type="text" placeholder="Your message...">
+          </div>
+          <button type="submit">Send</button>
+          <div style="clear:both"></div>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script>
+      var ws = new WebSocket("ws://127.0.0.1:8000/ws");
+      var $cur = $('#message-cursor');
+      var $page = $('html, body');
+      ws.onmessage = function (ev) {
+        var data = JSON.parse(ev.data)
+        if ('current_user' in data) {
+          var $name = $('<b>').css({padding:'5px', color:data.color}).text(data.current_user);
+          $('#username').text("Your name is").append($name);
+          return
+        }
+        var $row = $('<div>').addClass('item');
+        $('<div>').addClass('column key').css({color:data.color}).text(data.user).appendTo($row);
+        $('<div>').addClass('column value').text(data.message).appendTo($row);
+        $('<i>').css({clear:'both'}).appendTo($row);
+        $row.insertBefore($cur);
+        $page.animate({scrollTop: $(document).height()})
+      };
+
+      var $input = $('#message');
+      $('#send-message').submit(function(){
+          var msg = $input.val();
+          $input.val('');
+          ws.send(msg);
+          return false
+      })
+    </script>
+  </body>
+</html>
